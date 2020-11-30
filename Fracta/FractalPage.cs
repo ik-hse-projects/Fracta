@@ -1,4 +1,5 @@
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 
 namespace Fracta
@@ -70,11 +71,13 @@ namespace Fracta
             _picbox.Image = image;
             _picbox.Size = image.Size;
             _drawing = new DrawingContext(image);
+            _drawing.Graphics.TranslateTransform(_picbox.Size.Width / 2f, _picbox.Size.Height / 2f);
+            _drawing.Graphics.SmoothingMode = SmoothingMode.HighQuality;
         }
 
         public override void Draw()
         {
-            Fractal.DrawOn(_drawing);
+            Fractal.Draw(_drawing, 5);
             _picbox.Refresh();
         }
     }

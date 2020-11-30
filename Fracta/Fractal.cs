@@ -12,6 +12,6 @@ namespace Fracta
 
         public virtual int RecursionDepth { get; set; }
 
-        public abstract void DrawOn(DrawingContext graphics);
+        public abstract void Draw(DrawingContext graphics, int depth);
     }
 }
