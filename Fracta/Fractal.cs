@@ -8,9 +8,10 @@ namespace Fracta
     {
         public abstract string Name { get; }
 
-        public virtual Control? Settings => null;
+        private Settings? defaultSettings;
+        public virtual Settings Settings => defaultSettings ??= new Settings();
 
-        public virtual int RecursionDepth { get; set; }
+        public int RecursionDepth => Settings.Iterations;
 
         public abstract void Draw(DrawingContext graphics, int depth);
     }

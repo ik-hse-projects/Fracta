@@ -33,13 +33,17 @@ namespace Fracta
             Dock = DockStyle.Fill;
             SpecificFractal = fractal;
 
-            Controls.Add(fractal.Settings ?? new Control());
+            Controls.Add(fractal.Settings);
+            fractal.Settings.ValueChanged += (sender, args) => Draw();
 
-            var scroller = new Panel();
-            scroller.AutoScroll = true;
-            scroller.AutoSize = true;
+            var scroller = new Panel
+            {
+                AutoScroll = true,
+                Anchor = AnchorStyles.Bottom | AnchorStyles.Right,
+                Dock = DockStyle.Fill
+            };
             Controls.Add(scroller);
-            
+
             _picbox = new PictureBox();
             scroller.Controls.Add(_picbox);
 
@@ -71,13 +75,14 @@ namespace Fracta
             _picbox.Image = image;
             _picbox.Size = image.Size;
             _drawing = new DrawingContext(image);
-            _drawing.Graphics.TranslateTransform(_picbox.Size.Width / 2f, _picbox.Size.Height / 2f);
+            _drawing.Graphics.TranslateTransform(_picbox.Size.Width / 2f, _picbox.Size.Height);
             _drawing.Graphics.SmoothingMode = SmoothingMode.HighQuality;
         }
 
         public override void Draw()
         {
-            Fractal.Draw(_drawing, 5);
+            _drawing.Graphics.Clear(Color.White);
+            Fractal.Draw(_drawing, Fractal.RecursionDepth);
             _picbox.Refresh();
         }
     }

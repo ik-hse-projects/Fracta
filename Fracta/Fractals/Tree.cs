@@ -15,7 +15,7 @@ namespace Fracta.Fractals
         public override string Name => "Фрактальное дерево";
 
         private TreeSettings _settings;
-        public override Control Settings => _settings;
+        public override Settings Settings => _settings;
 
         private SizeF Rotate(SizeF direction, double angle)
         {
@@ -53,42 +53,91 @@ namespace Fracta.Fractals
             {
                 return;
             }
-
-            var turnRight = 30f;
-            var turnLeft = 45f;
-
-            var point = new PointF(0, -100);
             
-            var pen = new Pen(ColorTranslator.FromHtml(colortable[depth]), 3);
-            graphics.Graphics.DrawLine(pen, PointF.Empty, point);
+            var splitPoint = new PointF(0, -_settings.Length);
 
+            // Хочется, чтобы толщина пера всегда была равна требуемой.
+            // Поэтому рассчитаем то, насколько масштабировано пространство, а затем поделим на это число.
+            // Тогда когда толщина умножится на число (при выводе на экран), то она будет как раз примерно требуемая.
+            // По крайней мере идея такая.
+            var scale = (float) graphics.Graphics.Transform.GetAverageScale();
+            var pen = new Pen(ColorTranslator.FromHtml(colortable[depth]), _settings.Width / scale);
+            
+            // Теперь нарисуем одну единственную линию.
+            graphics.Graphics.DrawLine(pen, PointF.Empty, splitPoint);
+            
             var oldTransform = graphics.Graphics.Transform.Clone();
-            graphics.Graphics.TranslateTransform(point.X, point.Y, MatrixOrder.Prepend);
-            graphics.Graphics.ScaleTransform(0.7f, 0.7f, MatrixOrder.Prepend);
+            // Сделаем так, чтобы начало координат лежало в конце только что нарисованного отрезка.
+            graphics.Graphics.TranslateTransform(splitPoint.X, splitPoint.Y, MatrixOrder.Prepend);
+            // Уменьшим поддерево в нужное число раз.
+            graphics.Graphics.ScaleTransform(1 / _settings.Scaling, 1 / _settings.Scaling, MatrixOrder.Prepend);
 
-            graphics.Graphics.RotateTransform(-turnLeft, MatrixOrder.Prepend);
+            // Потом повернём всё вокруг нуля на нужный угол.
+            graphics.Graphics.RotateTransform(-_settings.LeftAngle, MatrixOrder.Prepend);
             Draw(graphics, depth - 1);
 
-            graphics.Graphics.RotateTransform(turnLeft + turnRight, MatrixOrder.Prepend);
+            // И теперь в другую сторону. Нужно не забыть компенсировать предыдущее вращение.
+            graphics.Graphics.RotateTransform(_settings.LeftAngle + _settings.RightAngle, MatrixOrder.Prepend);
             Draw(graphics, depth - 1);
 
+            // И когда оба поддерева нарисованы, нужно обязательно всё вернуть как было,
+            // так как после этого может быть нарисовано соседнее поддерево, а мы не хотим его сломать.
             graphics.Graphics.Transform = oldTransform;
         }
     }
 
-    public class TreeSettings : FlowLayoutPanel
+    public class TreeSettings : Settings
     {
+        public float RightAngle => (float) _rightAngle.Value;
+        public float LeftAngle => (float) _leftAngle.Value;
+        public float Scaling => (float) _scaling.Value;
+        public float Length => (int) _length.Value;
+
+        public float Width => (int) _width.Value;
+        
+        private NumberInput _rightAngle;
+        private NumberInput _leftAngle;
+        private NumberInput _scaling;
+        private NumberInput _length;
+        private NumberInput _width;
+        
         public TreeSettings()
         {
-            AutoSize = true;
-
-            Controls.Add(new Button
+            Add(_rightAngle = new NumberInput
             {
-                Text = "Hello world"
+                Minimum = 0,
+                Maximum = 180,
+                Value = 60,
+                Label = "Наклон правых",
             });
-            Controls.Add(new Button
+            Add(_leftAngle = new NumberInput
             {
-                Text = "I'm test."
+                Minimum = 0,
+                Maximum = 180,
+                Value = 30,
+                Label = "Наклон левых",
+            });
+            Add(_scaling = new NumberInput
+            {
+                Minimum = 0.2m,
+                Maximum = 5,
+                Value = 1.5m,
+                Label = "Степень уменьшения",
+                AllowFloat = true,
+            });
+            Add(_length = new NumberInput
+            {
+                Minimum = 1,
+                Maximum = 1000,
+                Value = 300,
+                Label = "Длина самой первой ветви",
+            });
+            Add(_width = new NumberInput
+            {
+                Minimum = 1,
+                Maximum = 100,
+                Value = 3,
+                Label = "Толщина линий",
             });
         }
     }
