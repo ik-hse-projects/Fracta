@@ -67,9 +67,11 @@ namespace Fracta
     public class Settings : FlowLayoutPanel
     {
         public int Iterations => (int) _iterations.Value;
+        public int Slowness => (int) _slowness.Value;
         public float Width => (int) _width.Value;
-        
+
         private NumberInput _iterations;
+        private NumberInput _slowness;
         private NumberInput _width;
 
         public Settings(Fractal fractal)
@@ -84,9 +86,19 @@ namespace Fracta
             {
                 Minimum = 1,
                 Maximum = fractal.MaxIterations,
+                Value = 3,
                 Label = "Число итераций"
             };
             Add(_iterations);
+            
+            _slowness = new NumberInput
+            {
+                Minimum = 1,
+                Maximum = 1 << 16,
+                Value = 100,
+                Label = "Медленность отрисовки"
+            };
+            Add(_slowness);
             
             _width = new NumberInput
             {

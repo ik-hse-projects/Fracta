@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Drawing;
 
 namespace Fracta.Fractals
@@ -16,23 +18,26 @@ namespace Fracta.Fractals
         public override Settings Settings => _settings;
 
         public override PointF Position => new PointF(0.5f, 0.5f);
-        
-        public override int MaxIterations => 6;
 
-        public override void Draw(DrawingContext graphics, int depth)
+        public override int MaxIterations => 6;
+        
+        public override long TotalWorkRequired(int depth) => (long) Math.Pow(8, depth - 1);
+
+        public override IEnumerable Draw(DrawingContext graphics, int depth)
         {
             if (depth <= 0)
             {
-                return;
+                yield break;
             }
 
             var pen = GetPen(graphics, depth).Brush;
             var third = _settings.Size / 3f;
-            graphics.Graphics.FillRectangle(pen, -third/2, -third/2, third, third);
+            graphics.Graphics.FillRectangle(pen, -third / 2, -third / 2, third, third);
+            yield return new object();
 
             if (depth == 1)
             {
-                return;
+                yield break;
             }
 
             var oldTransform = graphics.Graphics.Transform.Clone();
@@ -44,9 +49,12 @@ namespace Fracta.Fractals
                     {
                         continue;
                     }
+
                     graphics.Graphics.TranslateTransform(dx * third, dy * third);
-                    graphics.Graphics.ScaleTransform(1/3f, 1/3f);
-                    Draw(graphics, depth - 1);
+                    graphics.Graphics.ScaleTransform(1 / 3f, 1 / 3f);
+                    foreach (var x in Draw(graphics, depth - 1))
+                        yield return x;
+
                     graphics.Graphics.Transform = oldTransform.Clone();
                 }
             }

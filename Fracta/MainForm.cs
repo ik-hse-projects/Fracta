@@ -37,7 +37,7 @@ namespace Fracta
             foreach (var page in pages)
             {
                 page.UpdateSize();
-                page.Draw();
+                page.Draw(true);
             }
         }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Drawing;
 
 namespace Fracta.Fractals
@@ -20,11 +21,13 @@ namespace Fracta.Fractals
         
         public override int MaxIterations => 8;
         
-        public override void Draw(DrawingContext graphics, int depth)
+        public override long TotalWorkRequired(int depth) => (long) Math.Pow(4, depth - 1);
+        
+        public override IEnumerable Draw(DrawingContext graphics, int depth)
         {
             if (depth <= 0)
             {
-                return;
+                yield break;
             }
 
             var pen = GetPen(graphics, depth);
@@ -50,12 +53,13 @@ namespace Fracta.Fractals
                     peakRight,
                     right
                 });
-                return;
+                yield return new object();
+                yield break;
             }
 
             var hypot2 = (height * height) + (sixthLine * sixthLine);
-            var centerx = (float) (sixthLine / 2);
-            var centery = (float) (height / 2);
+            var centerx = (float) (sixthLine / 2f);
+            var centery = height / 2f;
 
             var angle = 180 / Math.PI * Math.Atan(height / sixthLine);
             var scaleAngled = (float) (Math.Sqrt(hypot2) / _settings.LineLength);
@@ -67,27 +71,31 @@ namespace Fracta.Fractals
             // Слева.
             graphics.Graphics.TranslateTransform((float) (-2 * sixthLine), 0);
             graphics.Graphics.ScaleTransform(scaleNormal, scaleNormal);
-            Draw(graphics, depth - 1);
+            foreach (var x in Draw(graphics, depth - 1))
+                yield return x;
             graphics.Graphics.Transform = oldTransform.Clone();
 
             // Справа.
             graphics.Graphics.TranslateTransform((float) (2 * sixthLine), 0);
             graphics.Graphics.ScaleTransform(scaleNormal, scaleNormal);
-            Draw(graphics, depth - 1);
+            foreach (var x in Draw(graphics, depth - 1))
+                yield return x;
             graphics.Graphics.Transform = oldTransform.Clone();
 
             // Слева под углом.
             graphics.Graphics.TranslateTransform(-centerx, -centery);
             graphics.Graphics.RotateTransform((float) (-angle));
             graphics.Graphics.ScaleTransform(scaleAngled, scaleAngled);
-            Draw(graphics, depth - 1);
+            foreach (var x in Draw(graphics, depth - 1))
+                yield return x;
             graphics.Graphics.Transform = oldTransform.Clone();
 
             // Справа под углом.
             graphics.Graphics.TranslateTransform(centerx, -centery);
             graphics.Graphics.RotateTransform((float) angle);
             graphics.Graphics.ScaleTransform(scaleAngled, scaleAngled);
-            Draw(graphics, depth - 1);
+            foreach (var x in Draw(graphics, depth - 1))
+                yield return x;
             graphics.Graphics.Transform = oldTransform;
         }
     }

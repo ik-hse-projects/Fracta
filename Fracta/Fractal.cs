@@ -1,6 +1,5 @@
+using System.Collections;
 using System.Drawing;
-using System.Windows.Forms;
-using Fracta.Fractals;
 
 namespace Fracta
 {
@@ -12,11 +11,13 @@ namespace Fracta
 
         public int RecursionDepth => Settings.Iterations;
 
-        public abstract void Draw(DrawingContext graphics, int depth);
+        public abstract IEnumerable Draw(DrawingContext graphics, int depth);
         
         public abstract PointF Position { get; }
         
         public abstract int MaxIterations { get; }
+
+        public abstract long TotalWorkRequired(int depth);
 
         private static string[] colortable =
         {

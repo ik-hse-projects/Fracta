@@ -1,7 +1,7 @@
 using System;
+using System.Collections;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Windows.Forms;
 
 namespace Fracta.Fractals
 {
@@ -22,6 +22,8 @@ namespace Fracta.Fractals
 
         public override int MaxIterations => 14;
 
+        public override long TotalWorkRequired(int depth) => (long) Math.Pow(2, depth - 1); 
+
         private SizeF Rotate(SizeF direction, double angle)
         {
             var cos = Math.Cos(angle);
@@ -32,11 +34,11 @@ namespace Fracta.Fractals
             );
         }
 
-        public override void Draw(DrawingContext graphics, int depth)
+        public override IEnumerable Draw(DrawingContext graphics, int depth)
         {
             if (depth <= 0)
             {
-                return;
+                yield break;
             }
 
             var splitPoint = new PointF(0, -_settings.Length);
@@ -44,6 +46,7 @@ namespace Fracta.Fractals
             // Теперь нарисуем одну единственную линию.
             var pen = GetPen(graphics, depth);
             graphics.Graphics.DrawLine(pen, PointF.Empty, splitPoint);
+            yield return new object();
 
             var oldTransform = graphics.Graphics.Transform.Clone();
             // Сделаем так, чтобы начало координат лежало в конце только что нарисованного отрезка.
@@ -53,11 +56,13 @@ namespace Fracta.Fractals
 
             // Потом повернём всё вокруг нуля на нужный угол.
             graphics.Graphics.RotateTransform(-_settings.LeftAngle, MatrixOrder.Prepend);
-            Draw(graphics, depth - 1);
+            foreach (var i in Draw(graphics, depth - 1))
+                yield return i;
 
             // И теперь в другую сторону. Нужно не забыть компенсировать предыдущее вращение.
             graphics.Graphics.RotateTransform(_settings.LeftAngle + _settings.RightAngle, MatrixOrder.Prepend);
-            Draw(graphics, depth - 1);
+            foreach (var i in Draw(graphics, depth - 1))
+                yield return i;
 
             // И когда оба поддерева нарисованы, нужно обязательно всё вернуть как было,
             // так как после этого может быть нарисовано соседнее поддерево, а мы не хотим его сломать.

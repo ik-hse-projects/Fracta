@@ -1,5 +1,7 @@
+using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace Fracta
@@ -12,7 +14,7 @@ namespace Fracta
 
         public abstract Fractal Fractal { get; }
         public abstract void UpdateSize();
-        public abstract void Draw();
+        public abstract void Draw(bool fast);
     }
 
     public class FractalPage<T> : FractalPage where T : Fractal, new()
@@ -34,7 +36,7 @@ namespace Fracta
             SpecificFractal = fractal;
 
             Controls.Add(fractal.Settings);
-            fractal.Settings.ValueChanged += (sender, args) => Draw();
+            fractal.Settings.ValueChanged += (sender, args) => Draw(false);
 
             var scroller = new Panel
             {
@@ -79,11 +81,28 @@ namespace Fracta
             _drawing.Graphics.TranslateTransform(_picbox.Size.Width * position.X, _picbox.Size.Height * position.Y);
             _drawing.Graphics.SmoothingMode = SmoothingMode.HighQuality;
         }
-
-        public override void Draw()
+        public override void Draw(bool fast)
         {
             _drawing.Graphics.Clear(Color.White);
-            Fractal.Draw(_drawing, Fractal.RecursionDepth);
+
+            var redrawEvery = Fractal.TotalWorkRequired(Fractal.RecursionDepth) / Fractal.Settings.Slowness;
+            if (fast)
+            {
+                redrawEvery = long.MaxValue;
+            }
+            
+            int counter = 0;
+            foreach (var o in Fractal.Draw(_drawing, Fractal.RecursionDepth))
+            {
+                counter++;
+                if (counter >= redrawEvery)
+                {
+                    // https://stackoverflow.com/a/2568723
+                    _picbox.Refresh();
+                    counter = 0;
+                }
+            }
+
             _picbox.Refresh();
         }
     }
