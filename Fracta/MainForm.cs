@@ -19,7 +19,8 @@ namespace Fracta
                 new FractalPage<Fractals.Tree>(),
                 new FractalPage<Fractals.KochCurve>(),
                 new FractalPage<Fractals.SierpinskiСarpet>(),
-                new FractalPage<Fractals.SierpinskiTriangle>()
+                new FractalPage<Fractals.SierpinskiTriangle>(),
+                new FractalPage<Fractals.Cantor>(),
             };
 
             var tabs = new TabControl {Dock = DockStyle.Fill};
