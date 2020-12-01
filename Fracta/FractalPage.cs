@@ -92,7 +92,7 @@ namespace Fracta
             }
             
             int counter = 0;
-            foreach (var o in Fractal.Draw(_drawing, Fractal.RecursionDepth))
+            foreach (var o in Fractal.StartDrawing(_drawing, Fractal.RecursionDepth))
             {
                 counter++;
                 if (counter >= redrawEvery)

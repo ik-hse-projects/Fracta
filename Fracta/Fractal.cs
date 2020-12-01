@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Drawing;
 
 namespace Fracta
@@ -12,6 +13,11 @@ namespace Fracta
         public int RecursionDepth => Settings.Iterations;
 
         public abstract IEnumerable Draw(DrawingContext graphics, int depth);
+
+        public virtual IEnumerable StartDrawing(DrawingContext graphics, int depth)
+        {
+            return Draw(graphics, depth);
+        }
         
         public abstract PointF Position { get; }
         
