@@ -13,6 +13,10 @@ namespace Fracta
         public int RecursionDepth => Settings.Iterations;
 
         public abstract void Draw(DrawingContext graphics, int depth);
+        
+        public abstract PointF Position { get; }
+        
+        public abstract int MaxIterations { get; }
 
         private static string[] colortable =
         {

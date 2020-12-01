@@ -75,7 +75,8 @@ namespace Fracta
             _picbox.Image = image;
             _picbox.Size = image.Size;
             _drawing = new DrawingContext(image);
-            _drawing.Graphics.TranslateTransform(_picbox.Size.Width / 2f, _picbox.Size.Height / 1.2f);
+            var position = Fractal.Position;
+            _drawing.Graphics.TranslateTransform(_picbox.Size.Width * position.X, _picbox.Size.Height * position.Y);
             _drawing.Graphics.SmoothingMode = SmoothingMode.HighQuality;
         }
 

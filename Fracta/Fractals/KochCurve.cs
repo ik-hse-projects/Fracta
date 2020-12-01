@@ -5,16 +5,21 @@ namespace Fracta.Fractals
 {
     public class KochCurve : Fractal
     {
-        public KochCurve()
-        {
-            _settings = new KochCurveSettings();
-        }
-
         public override string Name => "Кривая Коха";
 
-        private KochCurveSettings _settings;
+        private readonly KochCurveSettings _settings;
+
+        public KochCurve()
+        {
+            _settings = new KochCurveSettings(this);
+        }
+
         public override Settings Settings => _settings;
 
+        public override PointF Position => new PointF(0.5f, 0.7f);
+        
+        public override int MaxIterations => 8;
+        
         public override void Draw(DrawingContext graphics, int depth)
         {
             if (depth <= 0)
@@ -58,25 +63,25 @@ namespace Fracta.Fractals
 
             // Сохраняем положение. Лучше см. Tree: там больше комментариев по поводу этого фокуса. 
             var oldTransform = graphics.Graphics.Transform.Clone();
-            
+
             // Слева.
             graphics.Graphics.TranslateTransform((float) (-2 * sixthLine), 0);
             graphics.Graphics.ScaleTransform(scaleNormal, scaleNormal);
             Draw(graphics, depth - 1);
-            graphics.Graphics.Transform = oldTransform;
-            
+            graphics.Graphics.Transform = oldTransform.Clone();
+
             // Справа.
             graphics.Graphics.TranslateTransform((float) (2 * sixthLine), 0);
             graphics.Graphics.ScaleTransform(scaleNormal, scaleNormal);
             Draw(graphics, depth - 1);
-            graphics.Graphics.Transform = oldTransform;
+            graphics.Graphics.Transform = oldTransform.Clone();
 
             // Слева под углом.
             graphics.Graphics.TranslateTransform(-centerx, -centery);
             graphics.Graphics.RotateTransform((float) (-angle));
             graphics.Graphics.ScaleTransform(scaleAngled, scaleAngled);
             Draw(graphics, depth - 1);
-            graphics.Graphics.Transform = oldTransform;
+            graphics.Graphics.Transform = oldTransform.Clone();
 
             // Справа под углом.
             graphics.Graphics.TranslateTransform(centerx, -centery);
@@ -95,7 +100,7 @@ namespace Fracta.Fractals
         private NumberInput _lineLength;
         private NumberInput _height;
 
-        public KochCurveSettings()
+        public KochCurveSettings(Fractal fractal) : base(fractal)
         {
             Add(_lineLength = new NumberInput
             {

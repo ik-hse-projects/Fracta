@@ -7,15 +7,20 @@ namespace Fracta.Fractals
 {
     public class Tree : Fractal
     {
-        public Tree()
-        {
-            _settings = new TreeSettings();
-        }
-
         public override string Name => "Фрактальное дерево";
 
-        private TreeSettings _settings;
+        private readonly TreeSettings _settings;
+
+        public Tree()
+        {
+            _settings = new TreeSettings(this);
+        }
+
         public override Settings Settings => _settings;
+
+        public override PointF Position => new PointF(0.5f, 1);
+
+        public override int MaxIterations => 14;
 
         private SizeF Rotate(SizeF direction, double angle)
         {
@@ -33,13 +38,13 @@ namespace Fracta.Fractals
             {
                 return;
             }
-            
+
             var splitPoint = new PointF(0, -_settings.Length);
 
             // Теперь нарисуем одну единственную линию.
             var pen = GetPen(graphics, depth);
             graphics.Graphics.DrawLine(pen, PointF.Empty, splitPoint);
-            
+
             var oldTransform = graphics.Graphics.Transform.Clone();
             // Сделаем так, чтобы начало координат лежало в конце только что нарисованного отрезка.
             graphics.Graphics.TranslateTransform(splitPoint.X, splitPoint.Y, MatrixOrder.Prepend);
@@ -71,8 +76,8 @@ namespace Fracta.Fractals
         private NumberInput _leftAngle;
         private NumberInput _scaling;
         private NumberInput _length;
-        
-        public TreeSettings()
+
+        public TreeSettings(Fractal fractal) : base(fractal)
         {
             Add(_rightAngle = new NumberInput
             {

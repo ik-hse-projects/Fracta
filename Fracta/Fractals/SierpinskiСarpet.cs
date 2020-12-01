@@ -1,0 +1,73 @@
+using System.Drawing;
+
+namespace Fracta.Fractals
+{
+    public class SierpinskiСarpet : Fractal
+    {
+        public override string Name => "Ковёр Серпинского";
+
+        private SierpinskiСarpetSettings _settings;
+
+        public SierpinskiСarpet()
+        {
+            _settings = new SierpinskiСarpetSettings(this);
+        }
+
+        public override Settings Settings => _settings;
+
+        public override PointF Position => new PointF(0.5f, 0.5f);
+        
+        public override int MaxIterations => 6;
+
+        public override void Draw(DrawingContext graphics, int depth)
+        {
+            if (depth <= 0)
+            {
+                return;
+            }
+
+            var pen = GetPen(graphics, depth).Brush;
+            var third = _settings.Size / 3f;
+            graphics.Graphics.FillRectangle(pen, -third/2, -third/2, third, third);
+
+            if (depth == 1)
+            {
+                return;
+            }
+
+            var oldTransform = graphics.Graphics.Transform.Clone();
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                for (int dy = -1; dy <= 1; dy++)
+                {
+                    if (dx == 0 && dy == 0)
+                    {
+                        continue;
+                    }
+                    graphics.Graphics.TranslateTransform(dx * third, dy * third);
+                    graphics.Graphics.ScaleTransform(1/3f, 1/3f);
+                    Draw(graphics, depth - 1);
+                    graphics.Graphics.Transform = oldTransform.Clone();
+                }
+            }
+        }
+    }
+
+    public class SierpinskiСarpetSettings : Settings
+    {
+        public int Size => (int) _size.Value;
+
+        private NumberInput _size = new NumberInput
+        {
+            Label = "Размер квадрата",
+            Minimum = 1,
+            Maximum = 10000,
+            Value = 1000,
+        };
+
+        public SierpinskiСarpetSettings(Fractal fractal) : base(fractal)
+        {
+            Add(_size);
+        }
+    }
+}

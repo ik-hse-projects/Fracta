@@ -72,7 +72,7 @@ namespace Fracta
         private NumberInput _iterations;
         private NumberInput _width;
 
-        public Settings()
+        public Settings(Fractal fractal)
         {
             AutoSize = true;
             AutoSizeMode = AutoSizeMode.GrowAndShrink;
@@ -83,8 +83,8 @@ namespace Fracta
             _iterations = new NumberInput
             {
                 Minimum = 1,
-                Maximum = 12,
-                Label = "число итераций"
+                Maximum = fractal.MaxIterations,
+                Label = "Число итераций"
             };
             Add(_iterations);
             
