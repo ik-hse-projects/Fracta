@@ -66,8 +66,11 @@ namespace Fracta
 
     public class Settings : FlowLayoutPanel
     {
-        private NumberInput _iterations;
         public int Iterations => (int) _iterations.Value;
+        public float Width => (int) _width.Value;
+        
+        private NumberInput _iterations;
+        private NumberInput _width;
 
         public Settings()
         {
@@ -84,6 +87,15 @@ namespace Fracta
                 Label = "число итераций"
             };
             Add(_iterations);
+            
+            _width = new NumberInput
+            {
+                Minimum = 1,
+                Maximum = 100,
+                Label = "Толщина линий",
+                Value = 3,
+            };
+            Add(_width);
         }
 
         public event EventHandler? ValueChanged;

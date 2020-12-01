@@ -16,7 +16,8 @@ namespace Fracta
 
             pages = new FractalPage[]
             {
-                new FractalPage<Fractals.Tree>()
+                new FractalPage<Fractals.Tree>(),
+                new FractalPage<Fractals.KochCurve>()
             };
 
             var tabs = new TabControl {Dock = DockStyle.Fill};
