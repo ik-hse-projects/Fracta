@@ -18,12 +18,12 @@ namespace Fracta.Fractals
         public override Settings Settings => _settings;
 
         public override PointF Position => new PointF(0.5f, 0.7f);
-        
+
         public override int MaxIterations => 8;
-        
+
         public override long TotalWorkRequired(int depth) => (long) Math.Pow(4, depth - 1);
-        
-        public override IEnumerable Draw(DrawingContext graphics, int depth)
+
+        private IEnumerable Draw(DrawingContext graphics, int depth, int skips)
         {
             if (depth <= 0)
             {
@@ -43,19 +43,38 @@ namespace Fracta.Fractals
             var height = _settings.Height;
             var peak = new Point(0, -height);
 
+            var tailLength = (double) _settings.LineLength;
+            for (int i = 0; i < depth; i++) tailLength /= 3d;
+
+            var leftTail = new PointF((float) (-halfLine + tailLength), 0);
+            var rightTail = new PointF((float) (halfLine - tailLength), 0);
+
+            if ((skips & 0b10) == 0)
+            {
+                graphics.Graphics.DrawLine(pen, left, leftTail);
+            }
+
+            if ((skips & 0b01) == 0)
+            {
+                graphics.Graphics.DrawLine(pen, right, rightTail);
+            }
+            
             if (depth == 1)
             {
-                graphics.Graphics.DrawLines(pen, new[]
+                var nextPen = GetPen(graphics, depth - 1);
+                graphics.Graphics.DrawLines(nextPen, new []
                 {
-                    left,
+                    leftTail,
                     peakLeft,
                     peak,
                     peakRight,
-                    right
+                    rightTail
                 });
                 yield return new object();
                 yield break;
             }
+
+            yield return new object();
 
             var hypot2 = (height * height) + (sixthLine * sixthLine);
             var centerx = (float) (sixthLine / 2f);
@@ -71,14 +90,14 @@ namespace Fracta.Fractals
             // Слева.
             graphics.Graphics.TranslateTransform((float) (-2 * sixthLine), 0);
             graphics.Graphics.ScaleTransform(scaleNormal, scaleNormal);
-            foreach (var x in Draw(graphics, depth - 1))
+            foreach (var x in Draw(graphics, depth - 1, 0b10))
                 yield return x;
             graphics.Graphics.Transform = oldTransform.Clone();
 
             // Справа.
             graphics.Graphics.TranslateTransform((float) (2 * sixthLine), 0);
             graphics.Graphics.ScaleTransform(scaleNormal, scaleNormal);
-            foreach (var x in Draw(graphics, depth - 1))
+            foreach (var x in Draw(graphics, depth - 1, 0b01))
                 yield return x;
             graphics.Graphics.Transform = oldTransform.Clone();
 
@@ -86,7 +105,7 @@ namespace Fracta.Fractals
             graphics.Graphics.TranslateTransform(-centerx, -centery);
             graphics.Graphics.RotateTransform((float) (-angle));
             graphics.Graphics.ScaleTransform(scaleAngled, scaleAngled);
-            foreach (var x in Draw(graphics, depth - 1))
+            foreach (var x in Draw(graphics, depth - 1, 0))
                 yield return x;
             graphics.Graphics.Transform = oldTransform.Clone();
 
@@ -94,9 +113,14 @@ namespace Fracta.Fractals
             graphics.Graphics.TranslateTransform(centerx, -centery);
             graphics.Graphics.RotateTransform((float) angle);
             graphics.Graphics.ScaleTransform(scaleAngled, scaleAngled);
-            foreach (var x in Draw(graphics, depth - 1))
+            foreach (var x in Draw(graphics, depth - 1, 0))
                 yield return x;
             graphics.Graphics.Transform = oldTransform;
+        }
+
+        public override IEnumerable Draw(DrawingContext graphics, int depth)
+        {
+            return Draw(graphics, depth, 0);
         }
     }
 
