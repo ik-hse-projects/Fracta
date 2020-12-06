@@ -22,8 +22,6 @@ namespace Fracta.Fractals
 
         public override int MaxIterations => 14;
 
-        public override long TotalWorkRequired(int depth) => (long) Math.Pow(2, depth - 1); 
-
         private SizeF Rotate(SizeF direction, double angle)
         {
             var cos = Math.Cos(angle);
@@ -67,6 +65,35 @@ namespace Fracta.Fractals
             // И когда оба поддерева нарисованы, нужно обязательно всё вернуть как было,
             // так как после этого может быть нарисовано соседнее поддерево, а мы не хотим его сломать.
             graphics.Graphics.Transform = oldTransform;
+        }
+        
+        public override FractalInfo GetInfo(int depth)
+        {
+            var radius = 0d;
+            var scale = 1d;
+            var alpha = _settings.LeftAngle * Math.PI / 180;
+            var beta = _settings.RightAngle * Math.PI / 180;
+            for (int i = 0; i < depth; i++)
+            {
+                var d = _settings.Length / scale;
+                scale *= _settings.Scaling;
+                var angle = Math.Max(
+                    Math.Max(
+                        Math.Abs(Math.Sin(i * alpha)),
+                        Math.Abs(Math.Cos(i * alpha))
+                    ), Math.Max(
+                        Math.Abs(Math.Sin(-i * beta)),
+                        Math.Abs(Math.Cos(-i * beta))
+                    )
+                );
+                radius += d * angle;
+            }
+            return new FractalInfo
+            {
+                TotalWork = (int) Math.Pow(2, depth - 1),
+                Width = (int) radius * 2,
+                Height = (int) radius * 2
+            };
         }
     }
 

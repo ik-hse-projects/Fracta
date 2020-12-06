@@ -27,8 +27,6 @@ namespace Fracta.Fractals
         
         public override int MaxIterations => 8;
         
-        public override long TotalWorkRequired(int depth) => (long) Math.Pow(4, depth - 1);
-
         public override IEnumerable Draw(DrawingContext graphics, int depth)
         {
             if (depth <= 0)
@@ -96,6 +94,16 @@ namespace Fracta.Fractals
                 yield return x;
             foreach (var x in base.StartDrawing(graphics, depth))
                 yield return x;
+        }
+        
+        public override FractalInfo GetInfo(int depth)
+        {
+            return new FractalInfo
+            {
+                TotalWork = (int) Math.Pow(4, depth + 1),
+                Width = _settings.LineLength,
+                Height = _settings.Height
+            };
         }
     }
     

@@ -20,8 +20,6 @@ namespace Fracta.Fractals
         public override PointF Position => new PointF(0.5f, 0.5f);
 
         public override int MaxIterations => 6;
-        
-        public override long TotalWorkRequired(int depth) => (long) Math.Pow(8, depth - 1);
 
         public override IEnumerable Draw(DrawingContext graphics, int depth)
         {
@@ -58,6 +56,16 @@ namespace Fracta.Fractals
                     graphics.Graphics.Transform = oldTransform.Clone();
                 }
             }
+        }
+        
+        public override FractalInfo GetInfo(int depth)
+        {
+            return new FractalInfo
+            {
+                TotalWork = (int) Math.Pow(8, depth + 1),
+                Width = _settings.Size,
+                Height = _settings.Size
+            };
         }
     }
 

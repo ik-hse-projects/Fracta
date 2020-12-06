@@ -77,20 +77,33 @@ namespace Fracta
             _picbox.Image = image;
             _picbox.Size = image.Size;
             _drawing = new DrawingContext(image);
-            var position = Fractal.Position;
-            _drawing.Graphics.TranslateTransform(_picbox.Size.Width * position.X, _picbox.Size.Height * position.Y);
             _drawing.Graphics.SmoothingMode = SmoothingMode.HighQuality;
         }
+
         public override void Draw(bool fast)
         {
             _drawing.Graphics.Clear(Color.White);
 
-            var redrawEvery = Fractal.TotalWorkRequired(Fractal.RecursionDepth) / Fractal.Settings.Slowness;
+            var info = Fractal.GetInfo(Fractal.RecursionDepth);
+
+            _drawing.Graphics.ResetTransform();
+            _drawing.Graphics.TranslateTransform(
+                _picbox.Size.Width * Fractal.Position.X,
+                _picbox.Size.Height * Fractal.Position.Y
+            );
+            var k = 0.9f;
+            var scale = Math.Min(
+                _drawing.Image.Width * k / info.Width,
+                _drawing.Image.Height * k / info.Height
+            );
+            _drawing.Graphics.ScaleTransform(scale, scale);
+
+            var redrawEvery = info.TotalWork / Fractal.Settings.Slowness;
             if (fast)
             {
                 redrawEvery = long.MaxValue;
             }
-            
+
             int counter = 0;
             foreach (var o in Fractal.StartDrawing(_drawing, Fractal.RecursionDepth))
             {

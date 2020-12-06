@@ -13,7 +13,7 @@ namespace Fracta
         public MainForm()
         {
             ClientSize = new Size(200, 200);
-            
+
             pages = new FractalPage[]
             {
                 new FractalPage<Fractals.Tree>(),

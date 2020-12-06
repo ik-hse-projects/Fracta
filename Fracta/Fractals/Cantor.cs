@@ -43,9 +43,14 @@ namespace Fracta.Fractals
         public override PointF Position => new PointF(0.5f, 0.0f);
         public override int MaxIterations => 14;
 
-        public override long TotalWorkRequired(int depth)
+        public override FractalInfo GetInfo(int depth)
         {
-            return (int) Math.Pow(2, depth + 1);
+            return new FractalInfo
+            {
+                TotalWork = (int) Math.Pow(2, depth + 1),
+                Width = _settings.TotalWidth,
+                Height = (int) ((depth - 1) * (_settings.Distance + _settings.Width))
+            };
         }
     }
 

@@ -80,7 +80,16 @@ namespace Fracta.Fractals
 
         public override PointF Position => new PointF(0.5f, 0.5f);
         public override int MaxIterations => 9;
-        public override long TotalWorkRequired(int depth) => (long) Math.Pow(3, depth - 1);
+
+        public override FractalInfo GetInfo(int depth)
+        {
+            return new FractalInfo
+            {
+                TotalWork = (int) Math.Pow(3, depth + 1),
+                Width = (int) _settings.Size * 2,
+                Height = (int) _settings.Size * 2,
+            };
+        }
     }
 
     public class SierpinskiTriangleSettings : Settings

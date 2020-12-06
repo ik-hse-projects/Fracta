@@ -23,7 +23,7 @@ namespace Fracta
         
         public abstract int MaxIterations { get; }
 
-        public abstract long TotalWorkRequired(int depth);
+        public abstract FractalInfo GetInfo(int depth);
 
         private static string[] colortable =
         {
@@ -56,5 +56,12 @@ namespace Fracta
             var pen = new Pen(ColorTranslator.FromHtml(colortable[depth]), (width ?? Settings.Width) / scale);
             return pen;
         }
+    }
+
+    public struct FractalInfo
+    {
+        public int Width;
+        public int Height;
+        public long TotalWork;
     }
 }
