@@ -6,9 +6,15 @@ namespace Fracta.Fractals
 {
     public class KochCurve : Fractal
     {
+        private readonly CantorCache _cache = new CantorCache(new CantorDefinition
+        {
+            Left = 1 / 3d,
+            Right = 1 / 3d,
+        });
+        
         public override string Name => "Кривая Коха";
 
-        private readonly KochCurveSettings _settings;
+        protected readonly KochCurveSettings _settings;
 
         public KochCurve()
         {
@@ -18,63 +24,21 @@ namespace Fracta.Fractals
         public override Settings Settings => _settings;
 
         public override PointF Position => new PointF(0.5f, 0.7f);
-
+        
         public override int MaxIterations => 8;
-
+        
         public override long TotalWorkRequired(int depth) => (long) Math.Pow(4, depth - 1);
 
-        private IEnumerable Draw(DrawingContext graphics, int depth, int skips)
+        public override IEnumerable Draw(DrawingContext graphics, int depth)
         {
             if (depth <= 0)
             {
                 yield break;
             }
 
-            var pen = GetPen(graphics, depth);
-
-            var halfLine = _settings.LineLength / 2d;
-            var left = new PointF((float) -halfLine, 0);
-            var right = new PointF((float) halfLine, 0);
-
             var sixthLine = _settings.LineLength / 6d;
-            var peakLeft = new PointF((float) -sixthLine, 0);
-            var peakRight = new PointF((float) sixthLine, 0);
 
             var height = _settings.Height;
-            var peak = new Point(0, -height);
-
-            var tailLength = (double) _settings.LineLength;
-            for (int i = 0; i < depth; i++) tailLength /= 3d;
-
-            var leftTail = new PointF((float) (-halfLine + tailLength), 0);
-            var rightTail = new PointF((float) (halfLine - tailLength), 0);
-
-            if ((skips & 0b10) == 0)
-            {
-                graphics.Graphics.DrawLine(pen, left, leftTail);
-            }
-
-            if ((skips & 0b01) == 0)
-            {
-                graphics.Graphics.DrawLine(pen, right, rightTail);
-            }
-            
-            if (depth == 1)
-            {
-                var nextPen = GetPen(graphics, depth - 1);
-                graphics.Graphics.DrawLines(nextPen, new []
-                {
-                    leftTail,
-                    peakLeft,
-                    peak,
-                    peakRight,
-                    rightTail
-                });
-                yield return new object();
-                yield break;
-            }
-
-            yield return new object();
 
             var hypot2 = (height * height) + (sixthLine * sixthLine);
             var centerx = (float) (sixthLine / 2f);
@@ -84,28 +48,33 @@ namespace Fracta.Fractals
             var scaleAngled = (float) (Math.Sqrt(hypot2) / _settings.LineLength);
             var scaleNormal = 1 / 3f;
 
-            // Сохраняем положение. Лучше см. Tree: там больше комментариев по поводу этого фокуса. 
+            // Сохраняем положение. Лучше см. Tree: там больше комментариев по поводу этого фокуса.
             var oldTransform = graphics.Graphics.Transform.Clone();
 
             // Слева.
             graphics.Graphics.TranslateTransform((float) (-2 * sixthLine), 0);
             graphics.Graphics.ScaleTransform(scaleNormal, scaleNormal);
-            foreach (var x in Draw(graphics, depth - 1, 0b10))
+            foreach (var x in Draw(graphics, depth - 1))
                 yield return x;
             graphics.Graphics.Transform = oldTransform.Clone();
 
             // Справа.
             graphics.Graphics.TranslateTransform((float) (2 * sixthLine), 0);
             graphics.Graphics.ScaleTransform(scaleNormal, scaleNormal);
-            foreach (var x in Draw(graphics, depth - 1, 0b01))
+            foreach (var x in Draw(graphics, depth - 1))
                 yield return x;
             graphics.Graphics.Transform = oldTransform.Clone();
+
+            var cantor = _cache.GetState(depth - 1);
 
             // Слева под углом.
             graphics.Graphics.TranslateTransform(-centerx, -centery);
             graphics.Graphics.RotateTransform((float) (-angle));
             graphics.Graphics.ScaleTransform(scaleAngled, scaleAngled);
-            foreach (var x in Draw(graphics, depth - 1, 0))
+            var pen = GetPen(graphics, depth);
+            foreach (var x in cantor.Draw(graphics, pen, _settings.LineLength))
+                yield return x;
+            foreach (var x in Draw(graphics, depth - 1))
                 yield return x;
             graphics.Graphics.Transform = oldTransform.Clone();
 
@@ -113,17 +82,23 @@ namespace Fracta.Fractals
             graphics.Graphics.TranslateTransform(centerx, -centery);
             graphics.Graphics.RotateTransform((float) angle);
             graphics.Graphics.ScaleTransform(scaleAngled, scaleAngled);
-            foreach (var x in Draw(graphics, depth - 1, 0))
+            foreach (var x in cantor.Draw(graphics, pen, _settings.LineLength))
+                yield return x;
+            foreach (var x in Draw(graphics, depth - 1))
                 yield return x;
             graphics.Graphics.Transform = oldTransform;
         }
 
-        public override IEnumerable Draw(DrawingContext graphics, int depth)
+        public override IEnumerable StartDrawing(DrawingContext graphics, int depth)
         {
-            return Draw(graphics, depth, 0);
+            var pen = GetPen(graphics, depth);
+            foreach (var x in _cache.GetState(depth).Draw(graphics, pen, _settings.LineLength))
+                yield return x;
+            foreach (var x in base.StartDrawing(graphics, depth))
+                yield return x;
         }
     }
-
+    
     public class KochCurveSettings : Settings
     {
         public int LineLength => (int) _lineLength.Value;
