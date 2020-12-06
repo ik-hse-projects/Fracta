@@ -73,6 +73,9 @@ namespace Fracta
         private NumberInput _iterations;
         private NumberInput _slowness;
         private NumberInput _width;
+        private Button _saveButton;
+
+        public event EventHandler? OnSaveButtonClick;
 
         public Settings(Fractal fractal)
         {
@@ -82,6 +85,13 @@ namespace Fracta
             Dock = DockStyle.Top;
             MaximumSize = new Size(0, 100);
             FlowDirection = FlowDirection.TopDown;
+            _saveButton = new Button
+            {
+                Text = "Сохранить",
+            };
+            _saveButton.Click += (sender, e) => OnSaveButtonClick?.Invoke(sender, e);
+            Controls.Add(_saveButton);
+            
             _iterations = new NumberInput
             {
                 Minimum = 1,

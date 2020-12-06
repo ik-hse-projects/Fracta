@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -37,6 +38,7 @@ namespace Fracta
 
             Controls.Add(fractal.Settings);
             fractal.Settings.ValueChanged += (sender, args) => Draw(false);
+            fractal.Settings.OnSaveButtonClick += SaveImage;
 
             var scroller = new Panel
             {
@@ -69,6 +71,30 @@ namespace Fracta
 
             _picbox.SetBounds(5, offset, Bounds.Width - 5, available_height);
             return new Bitmap(Bounds.Width - 10, available_height);
+        }
+
+        private void SaveImage(object sender, EventArgs e)
+        {
+            var dialog = new SaveFileDialog
+            {
+                AddExtension = true,
+                DefaultExt = "png",
+                ValidateNames = true,
+                Filter = "*.png",
+                FilterIndex = 0,
+            };
+            var result = dialog.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                try
+                {
+                    _picbox.Image.Save(dialog.FileName, ImageFormat.Png);
+                }
+                catch (Exception exception)
+                {
+                    MessageBox.Show($"Не удалось сохранить: {exception.Message}", "Ошибка");
+                }
+            }
         }
 
         public override void UpdateSize()
