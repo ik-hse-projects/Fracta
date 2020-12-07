@@ -1,6 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fracta", "Fracta\Fracta.csproj", "{19A833F3-39B3-456A-BC4F-4D6DBE03C8AF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fracta.netframework", "Fracta\Fracta.netframework.csproj", "{17120C52-D72E-4A74-BD94-131F95F6C95C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fracta.netcore", "Fracta\Fracta.netcore.csproj", "{6F8C541A-21EF-4AB2-A1AB-5DD10D9B6E51}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -8,9 +11,9 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{19A833F3-39B3-456A-BC4F-4D6DBE03C8AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{19A833F3-39B3-456A-BC4F-4D6DBE03C8AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{19A833F3-39B3-456A-BC4F-4D6DBE03C8AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{19A833F3-39B3-456A-BC4F-4D6DBE03C8AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17120C52-D72E-4A74-BD94-131F95F6C95C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17120C52-D72E-4A74-BD94-131F95F6C95C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17120C52-D72E-4A74-BD94-131F95F6C95C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17120C52-D72E-4A74-BD94-131F95F6C95C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
