@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Forms;
 
@@ -9,6 +10,7 @@ namespace Fracta
     class MainForm : Form
     {
         private FractalPage[] pages;
+        private TabControl tabs;
 
         public MainForm()
         {
@@ -23,23 +25,24 @@ namespace Fracta
                 new FractalPage<Fractals.Cantor>(),
             };
 
-            var tabs = new TabControl {Dock = DockStyle.Fill};
+            tabs = new TabControl {Dock = DockStyle.Fill};
 
             tabs.TabPages.AddRange(pages);
 
             Controls.Add(tabs);
 
             ResizeEnd += (sender, args) => Redraw();
+            tabs.Selected += (sender, args) => Redraw();
 
             Redraw();
         }
 
         private void Redraw()
         {
-            foreach (var page in pages)
+            if (tabs.SelectedTab is FractalPage fractalPage)
             {
-                page.UpdateSize();
-                page.Draw(true);
+                fractalPage.UpdateSize();
+                fractalPage.Draw(true);
             }
         }
 

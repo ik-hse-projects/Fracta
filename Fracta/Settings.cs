@@ -70,10 +70,17 @@ namespace Fracta
         public int Slowness => (int) _slowness.Value;
         public float Width => (int) _width.Value;
 
-        private NumberInput _iterations;
-        private NumberInput _slowness;
-        private NumberInput _width;
-        private Button _saveButton;
+        private readonly NumberInput _iterations;
+        private readonly NumberInput _slowness;
+        private readonly NumberInput _width;
+
+        public Color StartColor => _startColor;
+        public Color EndColor => _endColor;
+        public GradientKind GradientKind => (_colorKind.SelectedItem as GradientKind?) ?? GradientKind.None;
+
+        private Color _startColor = Color.Red;
+        private Color _endColor = Color.Blue;
+        private ComboBox _colorKind;
 
         public event EventHandler? OnSaveButtonClick;
 
@@ -85,13 +92,38 @@ namespace Fracta
             Dock = DockStyle.Top;
             MaximumSize = new Size(0, 100);
             FlowDirection = FlowDirection.TopDown;
-            _saveButton = new Button
+            Button saveButton = new Button
             {
                 Text = "Сохранить",
+                AutoSize = true,
             };
-            _saveButton.Click += (sender, e) => OnSaveButtonClick?.Invoke(sender, e);
-            Controls.Add(_saveButton);
+            saveButton.Click += (sender, e) => OnSaveButtonClick?.Invoke(sender, e);
+            Controls.Add(saveButton);
+
+            _colorKind = new ComboBox();
+            _colorKind.Items.Add(GradientKind.None);
+            _colorKind.Items.Add(GradientKind.Usual);
+            _colorKind.Items.Add(GradientKind.HSV);
+            _colorKind.Items.Add(GradientKind.Static);
+            _colorKind.SelectedIndex = 2;
+            Add(_colorKind);
+
+            var startColor = new Button
+            {
+                Text = "Начальный цвет",
+                AutoSize = true,
+            };
+            startColor.Click += (sender, args) => AskForColor(ref _startColor);
+            Controls.Add(startColor);
             
+            var endColor = new Button
+            {
+                Text = "Конечный цвет",
+                AutoSize = true,
+            };
+            endColor.Click += (sender, args) => AskForColor(ref _endColor);
+            Controls.Add(endColor);
+
             _iterations = new NumberInput
             {
                 Minimum = 1,
@@ -100,7 +132,7 @@ namespace Fracta
                 Label = "Число итераций"
             };
             Add(_iterations);
-            
+
             _slowness = new NumberInput
             {
                 Minimum = 1,
@@ -109,7 +141,7 @@ namespace Fracta
                 Label = "Медленность отрисовки"
             };
             Add(_slowness);
-            
+
             _width = new NumberInput
             {
                 Minimum = 1,
@@ -120,12 +152,33 @@ namespace Fracta
             Add(_width);
         }
 
-        public event EventHandler? ValueChanged;
+        public event Action? ValueChanged;
 
         public void Add(NumberInput input)
         {
-            input.ValueChanged += (sender, args) => ValueChanged?.Invoke(sender, args);
+            input.ValueChanged += (sender, args) => ValueChanged?.Invoke();
             Controls.Add(input);
+        }
+
+        public void Add(ComboBox input)
+        {
+            input.SelectedValueChanged += (sender, args) => ValueChanged?.Invoke();
+            Controls.Add(input);
+        }
+
+        private void AskForColor(ref Color color)
+        {
+            var dialog = new ColorDialog {Color = color};
+            var result = dialog.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                if (color != dialog.Color)
+                {
+                    ValueChanged?.Invoke();
+                }
+
+                color = dialog.Color;
+            }
         }
     }
 }

@@ -37,7 +37,7 @@ namespace Fracta
             SpecificFractal = fractal;
 
             Controls.Add(fractal.Settings);
-            fractal.Settings.ValueChanged += (sender, args) => Draw(false);
+            fractal.Settings.ValueChanged += () => Draw(false);
             fractal.Settings.OnSaveButtonClick += SaveImage;
 
             var scroller = new Panel
@@ -50,8 +50,6 @@ namespace Fracta
 
             _picbox = new PictureBox();
             scroller.Controls.Add(_picbox);
-
-            UpdateSize();
         }
 
         private Bitmap CreateBitmap()
