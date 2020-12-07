@@ -6,22 +6,28 @@ namespace Fracta.Fractals
 {
     public class SierpinskiСarpet : Fractal
     {
-        public override string Name => "Ковёр Серпинского";
+        private readonly SierpinskiСarpetSettings _settings;
 
-        private SierpinskiСarpetSettings _settings;
-
+        /// <inheritdoc />
         public SierpinskiСarpet()
         {
             _settings = new SierpinskiСarpetSettings(this);
         }
 
+        /// <inheritdoc />
+        public override string Name => "Ковёр Серпинского";
+
+        /// <inheritdoc />
         public override Settings Settings => _settings;
 
+        /// <inheritdoc />
         public override PointF Position => new PointF(0.5f, 0.5f);
 
+        /// <inheritdoc />
         public override int MaxIterations => 6;
 
-        public override IEnumerable Draw(DrawingContext graphics, int depth)
+        /// <inheritdoc />
+        protected override IEnumerable Draw(DrawingContext graphics, int depth)
         {
             if (depth <= 0)
             {
@@ -39,9 +45,9 @@ namespace Fracta.Fractals
             }
 
             var oldTransform = graphics.Graphics.Transform.Clone();
-            for (int dx = -1; dx <= 1; dx++)
+            for (var dx = -1; dx <= 1; dx++)
             {
-                for (int dy = -1; dy <= 1; dy++)
+                for (var dy = -1; dy <= 1; dy++)
                 {
                     if (dx == 0 && dy == 0)
                     {
@@ -51,13 +57,16 @@ namespace Fracta.Fractals
                     graphics.Graphics.TranslateTransform(dx * third, dy * third);
                     graphics.Graphics.ScaleTransform(1 / 3f, 1 / 3f);
                     foreach (var x in Draw(graphics, depth - 1))
+                    {
                         yield return x;
+                    }
 
                     graphics.Graphics.Transform = oldTransform.Clone();
                 }
             }
         }
-        
+
+        /// <inheritdoc />
         public override FractalInfo GetInfo(int depth)
         {
             return new FractalInfo
@@ -67,23 +76,22 @@ namespace Fracta.Fractals
                 Height = _settings.Size
             };
         }
-    }
 
-    public class SierpinskiСarpetSettings : Settings
-    {
-        public int Size => (int) _size.Value;
-
-        private NumberInput _size = new NumberInput
+        private class SierpinskiСarpetSettings : Settings
         {
-            Label = "Размер квадрата",
-            Minimum = 1,
-            Maximum = 10000,
-            Value = 1000,
-        };
+            public SierpinskiСarpetSettings(Fractal fractal) : base(fractal)
+            {
+                Add(_size);
+            }
 
-        public SierpinskiСarpetSettings(Fractal fractal) : base(fractal)
-        {
-            Add(_size);
+            public int Size => (int) _size.Value;
+            private readonly NumberInput _size = new NumberInput
+            {
+                Label = "Размер квадрата",
+                Minimum = 1,
+                Maximum = 10000,
+                Value = 1000
+            };
         }
     }
 }

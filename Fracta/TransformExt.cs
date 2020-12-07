@@ -5,11 +5,14 @@ namespace Fracta
 {
     public static class TransformExt
     {
+        /// <summary>
+        /// Извлекает масштабирование из матрицы преобразования.
+        /// </summary>
         public static (double scalex, double scaley) GetScale(this Matrix transformMatrix)
         {
             // Ссылка с формулой:
             // https://math.stackexchange.com/a/13165.
-            
+
             // Ссылка с информацией о том, как хранится матрица в массиве:
             // https://docs.microsoft.com/en-US/dotnet/api/system.drawing.drawing2d.matrix
 
@@ -23,14 +26,17 @@ namespace Fracta
             var b = transformMatrix.Elements[1];
             var c = transformMatrix.Elements[2];
             var d = transformMatrix.Elements[3];
-            
-            // Правда, нас не интересует знак: он будет только мешать.
+
+            // Правда нас не интересует знак: он будет только мешать.
             var scalex = Math.Sqrt(a * a + b * b);
             var scaley = Math.Sqrt(c * c + d * d);
 
             return (scalex, scaley);
         }
 
+        /// <summary>
+        /// Вычисляет среднее масштабирование у переданной матрицы.
+        /// </summary>
         public static double GetAverageScale(this Matrix transformationMatrix)
         {
             var (scalex, scaley) = transformationMatrix.GetScale();

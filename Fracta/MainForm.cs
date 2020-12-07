@@ -1,34 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Runtime.CompilerServices;
+﻿using System.Drawing;
 using System.Windows.Forms;
+using Fracta.Fractals;
 
 namespace Fracta
 {
-    class MainForm : Form
+    /// <summary>
+    /// Главная формочка, в которой всё происходит.
+    /// </summary>
+    internal class MainForm : Form
     {
-        private FractalPage[] pages;
-        private TabControl tabs;
+        /// <summary>
+        /// Control вкладок, в котором лежат вкладки с фракталами.
+        /// </summary>
+        private readonly TabControl tabs;
 
         public MainForm()
         {
             ClientSize = new Size(200, 200);
 
-            pages = new FractalPage[]
+            FractalPage[] pages =
             {
-                new FractalPage<Fractals.Tree>(),
-                new FractalPage<Fractals.KochCurve>(),
-                new FractalPage<Fractals.SierpinskiСarpet>(),
-                new FractalPage<Fractals.SierpinskiTriangle>(),
-                new FractalPage<Fractals.Cantor>(),
+                new FractalPage<Tree>(),
+                new FractalPage<KochCurve>(),
+                new FractalPage<SierpinskiСarpet>(),
+                new FractalPage<SierpinskiTriangle>(),
+                new FractalPage<Cantor>()
             };
 
             tabs = new TabControl {Dock = DockStyle.Fill};
-
             tabs.TabPages.AddRange(pages);
-
             Controls.Add(tabs);
 
             ResizeEnd += (sender, args) => Redraw();
@@ -37,6 +37,9 @@ namespace Fracta
             Redraw();
         }
 
+        /// <summary>
+        /// Перерисовывает ту вкладку, которая сфокусирована на данный момент.
+        /// </summary>
         private void Redraw()
         {
             if (tabs.SelectedTab is FractalPage fractalPage)
@@ -46,7 +49,11 @@ namespace Fracta
             }
         }
 
-        static void Main(string[] args)
+        /// <summary>
+        /// Точка входа.
+        /// </summary>
+        /// <param name="args"></param>
+        private static void Main(string[] args)
         {
             Application.Run(new MainForm());
         }

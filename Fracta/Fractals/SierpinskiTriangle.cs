@@ -6,20 +6,38 @@ namespace Fracta.Fractals
 {
     public class SierpinskiTriangle : Fractal
     {
-        public override string Name => "Треугольник Серпинского";
+        /// <summary>
+        /// Синус 30⁰.
+        /// </summary>
+        private static readonly double Sin30 = Math.Sin(Math.PI / 6);
 
-        private SierpinskiTriangleSettings _settings;
-        public override Settings Settings => _settings;
+        /// <summary>
+        /// Косинус 30⁰.
+        /// </summary>
+        private static readonly double Cos30 = Math.Cos(Math.PI / 6);
 
+        private readonly SierpinskiTriangleSettings _settings;
+
+        /// <inheritdoc />
         public SierpinskiTriangle()
         {
             _settings = new SierpinskiTriangleSettings(this);
         }
 
-        private static double Sin30 = Math.Sin(Math.PI / 6);
-        private static double Cos30 = Math.Cos(Math.PI / 6);
+        /// <inheritdoc />
+        public override string Name => "Треугольник Серпинского";
 
-        public override IEnumerable Draw(DrawingContext graphics, int depth)
+        /// <inheritdoc />
+        public override Settings Settings => _settings;
+
+        /// <inheritdoc />
+        public override PointF Position => new PointF(0.5f, 0.5f);
+
+        /// <inheritdoc />
+        public override int MaxIterations => 9;
+
+        /// <inheritdoc />
+        protected override IEnumerable Draw(DrawingContext graphics, int depth)
         {
             if (depth <= 0)
             {
@@ -44,24 +62,34 @@ namespace Fracta.Fractals
             graphics.Graphics.TranslateTransform(0, -half);
             graphics.Graphics.ScaleTransform(0.5f, 0.5f);
             foreach (var x in Draw(graphics, depth - 1))
+            {
                 yield return x;
+            }
+
             graphics.Graphics.Transform = oldTransform.Clone();
 
             // Слева снизу.
             graphics.Graphics.TranslateTransform(-offsetX, offsetY);
             graphics.Graphics.ScaleTransform(0.5f, 0.5f);
             foreach (var x in Draw(graphics, depth - 1))
+            {
                 yield return x;
+            }
+
             graphics.Graphics.Transform = oldTransform.Clone();
 
             // Справа снизу.
             graphics.Graphics.TranslateTransform(+offsetX, offsetY);
             graphics.Graphics.ScaleTransform(0.5f, 0.5f);
             foreach (var x in Draw(graphics, depth - 1))
+            {
                 yield return x;
+            }
+
             graphics.Graphics.Transform = oldTransform;
         }
 
+        /// <inheritdoc />
         public override IEnumerable StartDrawing(DrawingContext graphics, int depth)
         {
             var radius = _settings.Size;
@@ -78,35 +106,34 @@ namespace Fracta.Fractals
             return base.StartDrawing(graphics, depth);
         }
 
-        public override PointF Position => new PointF(0.5f, 0.5f);
-        public override int MaxIterations => 9;
-
+        /// <inheritdoc />
         public override FractalInfo GetInfo(int depth)
         {
             return new FractalInfo
             {
                 TotalWork = (int) Math.Pow(3, depth + 1),
                 Width = (int) _settings.Size * 2,
-                Height = (int) _settings.Size * 2,
+                Height = (int) _settings.Size * 2
             };
         }
-    }
 
-    public class SierpinskiTriangleSettings : Settings
-    {
-        public float Size => (float) _size.Value;
-
-        private NumberInput _size = new NumberInput
+        private class SierpinskiTriangleSettings : Settings
         {
-            Label = "Размер треугольника",
-            Minimum = 1,
-            Maximum = 1000,
-            Value = 500,
-        };
+            public SierpinskiTriangleSettings(Fractal fractal) : base(fractal)
+            {
+                Add(_size);
+            }
+            
+            // Документация опущена, см. соответстувующие Label.
 
-        public SierpinskiTriangleSettings(Fractal fractal) : base(fractal)
-        {
-            Add(_size);
+            public float Size => (float) _size.Value;
+            private readonly NumberInput _size = new NumberInput
+            {
+                Label = "Размер треугольника",
+                Minimum = 1,
+                Maximum = 1000,
+                Value = 500
+            };
         }
     }
 }

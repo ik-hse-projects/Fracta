@@ -4,50 +4,20 @@ using System.Windows.Forms;
 
 namespace Fracta
 {
+    /// <summary>
+    /// Control для ввода чисел, которое удобно настривать и у которого есть Label.
+    /// </summary>
     public class NumberInput : FlowLayoutPanel
     {
-        public decimal Value
-        {
-            get => upDown.Value;
-            set => upDown.Value = value;
-        }
+        /// <summary>
+        /// Подпись к всему этому.
+        /// </summary>
+        private readonly Label label;
 
-        public decimal Minimum
-        {
-            get => upDown.Minimum;
-            set => upDown.Minimum = value;
-        }
-
-        public decimal Maximum
-        {
-            get => upDown.Maximum;
-            set => upDown.Maximum = value;
-        }
-
-        public bool AllowFloat
-        {
-            get => upDown.DecimalPlaces != 0;
-            set => upDown.DecimalPlaces = value ? 2 : 0;
-        }
-
-        public string Label
-        {
-            get => label.Text;
-            set
-            {
-                label.Text = value;
-                label.Size = new Size(label.PreferredWidth, label.PreferredHeight);
-            }
-        }
-
-        public event EventHandler ValueChanged
-        {
-            add => upDown.ValueChanged += value;
-            remove => upDown.ValueChanged -= value;
-        }
-
-        private NumericUpDown upDown;
-        private Label label;
+        /// <summary>
+        /// Control, который собственно отображает число и позволяет его менять.
+        /// </summary>
+        private readonly NumericUpDown upDown;
 
         public NumberInput()
         {
@@ -62,28 +32,101 @@ namespace Fracta
             Controls.Add(label);
             Controls.Add(upDown);
         }
+
+        /// <summary>
+        /// Введённое значение. Всегда в диапазоне [Minimum; Maximum].
+        /// </summary>
+        public decimal Value
+        {
+            get
+            {
+                var value = upDown.Value;
+
+                if (value < Minimum)
+                {
+                    value = Minimum;
+                }
+
+                if (value > Maximum)
+                {
+                    value = Maximum;
+                }
+
+                return value;
+            }
+            set => upDown.Value = value;
+        }
+
+        /// <summary>
+        /// Минимальное значение.
+        /// </summary>
+        public decimal Minimum
+        {
+            get => upDown.Minimum;
+            set => upDown.Minimum = value;
+        }
+
+        /// <summary>
+        /// Максимальное значение.
+        /// </summary>
+        public decimal Maximum
+        {
+            get => upDown.Maximum;
+            set => upDown.Maximum = value;
+        }
+
+        /// <summary>
+        /// Позволить ли вводить нецелые числа.
+        /// </summary>
+        public bool AllowFloat
+        {
+            get => upDown.DecimalPlaces != 0;
+            set => upDown.DecimalPlaces = value ? 2 : 0;
+        }
+
+        /// <summary>
+        /// Подпись к полю.
+        /// </summary>
+        public string Label
+        {
+            get => label.Text;
+            set
+            {
+                label.Text = value;
+                label.Size = new Size(label.PreferredWidth, label.PreferredHeight);
+            }
+        }
+
+        /// <summary>
+        /// Событие срабаывает тогда, когда значение меняется.
+        /// </summary>
+        public event EventHandler ValueChanged
+        {
+            add => upDown.ValueChanged += value;
+            remove => upDown.ValueChanged -= value;
+        }
     }
 
+    /// <summary>
+    /// Базовые настройки фрактала, которые есть у всех.
+    /// </summary>
     public class Settings : FlowLayoutPanel
     {
-        public int Iterations => (int) _iterations.Value;
-        public int Slowness => (int) _slowness.Value;
-        public float Width => (int) _width.Value;
-
         private readonly NumberInput _iterations;
-        private readonly NumberInput _slowness;
-        private readonly NumberInput _width;
 
-        public Color StartColor => _startColor;
-        public Color EndColor => _endColor;
-        public GradientKind GradientKind => (_colorKind.SelectedItem as GradientKind?) ?? GradientKind.None;
+        private readonly NumberInput _slowness;
+
+        private readonly NumberInput _thickness;
+
+        private readonly ComboBox _colorKind;
+
+        private Color _endColor = Color.Blue;
 
         private Color _startColor = Color.Red;
-        private Color _endColor = Color.Blue;
-        private ComboBox _colorKind;
 
-        public event EventHandler? OnSaveButtonClick;
-
+        /// <summary>
+        /// Создаёт настройки для переданного фрактала.
+        /// </summary>
         public Settings(Fractal fractal)
         {
             AutoSize = true;
@@ -95,7 +138,7 @@ namespace Fracta
             Button saveButton = new Button
             {
                 Text = "Сохранить",
-                AutoSize = true,
+                AutoSize = true
             };
             saveButton.Click += (sender, e) => OnSaveButtonClick?.Invoke(sender, e);
             Controls.Add(saveButton);
@@ -111,15 +154,15 @@ namespace Fracta
             var startColor = new Button
             {
                 Text = "Начальный цвет",
-                AutoSize = true,
+                AutoSize = true
             };
             startColor.Click += (sender, args) => AskForColor(ref _startColor);
             Controls.Add(startColor);
-            
+
             var endColor = new Button
             {
                 Text = "Конечный цвет",
-                AutoSize = true,
+                AutoSize = true
             };
             endColor.Click += (sender, args) => AskForColor(ref _endColor);
             Controls.Add(endColor);
@@ -142,43 +185,94 @@ namespace Fracta
             };
             Add(_slowness);
 
-            _width = new NumberInput
+            _thickness = new NumberInput
             {
                 Minimum = 1,
                 Maximum = 100,
                 Label = "Толщина линий",
-                Value = 3,
+                Value = 3
             };
-            Add(_width);
+            Add(_thickness);
         }
 
+        /// <summary>
+        /// Кол-во итераций.
+        /// </summary>
+        public int Iterations => (int) _iterations.Value;
+
+        /// <summary>
+        /// Медленность отрисовки.
+        /// </summary>
+        public int Slowness => (int) _slowness.Value;
+
+        /// <summary>
+        /// Толщина линий.
+        /// </summary>
+        public float Thickness => (int) _thickness.Value;
+
+        /// <summary>
+        /// Начальный увет градиента.
+        /// </summary>
+        public Color StartColor => _startColor;
+
+        /// <summary>
+        /// Конечный цвет градиента.
+        /// </summary>
+        public Color EndColor => _endColor;
+
+        /// <summary>
+        /// Выбранный вид градиента.
+        /// </summary>
+        public GradientKind GradientKind => _colorKind.SelectedItem as GradientKind? ?? GradientKind.None;
+
+        /// <summary>
+        /// Событие срабатывает, когда пользователь нажимает по кнопке сохранения.
+        /// </summary>
+        public event EventHandler? OnSaveButtonClick;
+
+        /// <summary>
+        /// Событие срабатывает, когда меняется одно из полей.
+        /// </summary>
         public event Action? ValueChanged;
 
+        /// <summary>
+        /// Добавляет NumberInput и начинает следить за изменениями числа.
+        /// </summary>
         public void Add(NumberInput input)
         {
             input.ValueChanged += (sender, args) => ValueChanged?.Invoke();
             Controls.Add(input);
         }
 
+        /// <summary>
+        /// Добавляет ComboBox и начинает следить за изменениями выбранного.
+        /// </summary>
         public void Add(ComboBox input)
         {
             input.SelectedValueChanged += (sender, args) => ValueChanged?.Invoke();
             Controls.Add(input);
         }
 
-        private void AskForColor(ref Color color)
+        /// <summary>
+        /// Спршивает у пользователя цвет и изменяет Color.
+        /// </summary>
+        /// <returns>true, если пользователь что-то выбрал, и false в противном случае.</returns>
+        private bool AskForColor(ref Color color)
         {
             var dialog = new ColorDialog {Color = color};
             var result = dialog.ShowDialog();
-            if (result == DialogResult.OK)
+            if (result != DialogResult.OK)
             {
-                if (color != dialog.Color)
-                {
-                    ValueChanged?.Invoke();
-                }
-
-                color = dialog.Color;
+                return false;
             }
+
+            if (color != dialog.Color)
+            {
+                ValueChanged?.Invoke();
+            }
+
+            color = dialog.Color;
+            return true;
         }
     }
 }

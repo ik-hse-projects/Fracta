@@ -7,32 +7,27 @@ namespace Fracta.Fractals
 {
     public class Tree : Fractal
     {
-        public override string Name => "Фрактальное дерево";
-
         private readonly TreeSettings _settings;
 
+        /// <inheritdoc />
         public Tree()
         {
             _settings = new TreeSettings(this);
         }
 
+        /// <inheritdoc />
+        public override string Name => "Фрактальное дерево";
+
+        /// <inheritdoc />
         public override Settings Settings => _settings;
 
+        /// <inheritdoc />
         public override PointF Position => new PointF(0.5f, 1);
 
+        /// <inheritdoc />
         public override int MaxIterations => 14;
 
-        private SizeF Rotate(SizeF direction, double angle)
-        {
-            var cos = Math.Cos(angle);
-            var sin = Math.Sin(angle);
-            return new SizeF(
-                (float) (direction.Width * cos - direction.Height * sin),
-                (float) (direction.Width * sin - direction.Height * cos)
-            );
-        }
-
-        public override IEnumerable Draw(DrawingContext graphics, int depth)
+        protected override IEnumerable Draw(DrawingContext graphics, int depth)
         {
             if (depth <= 0)
             {
@@ -55,25 +50,30 @@ namespace Fracta.Fractals
             // Потом повернём всё вокруг нуля на нужный угол.
             graphics.Graphics.RotateTransform(-_settings.LeftAngle, MatrixOrder.Prepend);
             foreach (var i in Draw(graphics, depth - 1))
+            {
                 yield return i;
+            }
 
             // И теперь в другую сторону. Нужно не забыть компенсировать предыдущее вращение.
             graphics.Graphics.RotateTransform(_settings.LeftAngle + _settings.RightAngle, MatrixOrder.Prepend);
             foreach (var i in Draw(graphics, depth - 1))
+            {
                 yield return i;
+            }
 
             // И когда оба поддерева нарисованы, нужно обязательно всё вернуть как было,
             // так как после этого может быть нарисовано соседнее поддерево, а мы не хотим его сломать.
             graphics.Graphics.Transform = oldTransform;
         }
-        
+
+        /// <inheritdoc />
         public override FractalInfo GetInfo(int depth)
         {
             var radius = 0d;
             var scale = 1d;
             var alpha = _settings.LeftAngle * Math.PI / 180;
             var beta = _settings.RightAngle * Math.PI / 180;
-            for (int i = 0; i < depth; i++)
+            for (var i = 0; i < depth; i++)
             {
                 var d = _settings.Length / scale;
                 scale *= _settings.Scaling;
@@ -88,6 +88,7 @@ namespace Fracta.Fractals
                 );
                 radius += d * angle;
             }
+
             return new FractalInfo
             {
                 TotalWork = (int) Math.Pow(2, depth - 1),
@@ -95,51 +96,53 @@ namespace Fracta.Fractals
                 Height = (int) radius * 2
             };
         }
-    }
 
-    public class TreeSettings : Settings
-    {
-        public float RightAngle => (float) _rightAngle.Value;
-        public float LeftAngle => (float) _leftAngle.Value;
-        public float Scaling => (float) _scaling.Value;
-        public float Length => (int) _length.Value;
-
-        private NumberInput _rightAngle;
-        private NumberInput _leftAngle;
-        private NumberInput _scaling;
-        private NumberInput _length;
-
-        public TreeSettings(Fractal fractal) : base(fractal)
+        private class TreeSettings : Settings
         {
-            Add(_rightAngle = new NumberInput
+            public TreeSettings(Fractal fractal) : base(fractal)
+            {
+                Add(_rightAngle);
+                Add(_leftAngle);
+                Add(_scaling);
+                Add(_length);
+            }
+
+            public float RightAngle => (float) _rightAngle.Value;
+            private readonly NumberInput _rightAngle = new NumberInput
             {
                 Minimum = 0,
                 Maximum = 180,
                 Value = 60,
-                Label = "Наклон правых",
-            });
-            Add(_leftAngle = new NumberInput
+                Label = "Наклон правых"
+            };
+
+            public float LeftAngle => (float) _leftAngle.Value;
+            private readonly NumberInput _leftAngle = new NumberInput
             {
                 Minimum = 0,
                 Maximum = 180,
                 Value = 30,
-                Label = "Наклон левых",
-            });
-            Add(_scaling = new NumberInput
+                Label = "Наклон левых"
+            };
+
+            public float Scaling => (float) _scaling.Value;
+            private readonly NumberInput _scaling = new NumberInput
             {
                 Minimum = 0.2m,
                 Maximum = 5,
                 Value = 1.5m,
                 Label = "Степень уменьшения",
-                AllowFloat = true,
-            });
-            Add(_length = new NumberInput
+                AllowFloat = true
+            };
+
+            public float Length => (int) _length.Value;
+            private readonly NumberInput _length = new NumberInput
             {
                 Minimum = 1,
                 Maximum = 1000,
                 Value = 300,
-                Label = "Длина самой первой ветви",
-            });
+                Label = "Длина самой первой ветви"
+            };
         }
     }
 }

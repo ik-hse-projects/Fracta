@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace Fracta
 {
+    /// <summary>
+    /// Вид градиента.
+    /// </summary>
     public enum GradientKind
     {
         Usual,
@@ -11,47 +14,17 @@ namespace Fracta
         Static,
         None
     }
-    
+
+    /// <summary>
+    /// Реализация градиентов.
+    /// </summary>
     public static class Gradient
     {
-        public static Color GetColor(this GradientKind kind, Color a, Color b, int numerator, int denominator)
-        {
-            var position = (double) numerator / denominator;
-            return kind switch
-            {
-                GradientKind.Usual => LinearGradient(a, b, position),
-                GradientKind.HSV => HsvGradient(a, b, position),
-                GradientKind.Static => StaticColor(numerator),
-                GradientKind.None => a,
-                _ => b
-            };
-        }
-
-        private static double Transform(double start, double end, double position)
-        {
-            return start + (end - start) * position;
-        }
-
-        public static Color LinearGradient(Color a, Color b, double position)
-        {
-            return Color.FromArgb(
-                (int) Transform(a.R, b.R, position),
-                (int) Transform(a.G, b.B, position),
-                (int) Transform(a.G, b.B, position));
-        }
-
-        public static Color HsvGradient(Color a, Color b, double position)
-        {
-            ColorToHSV(a, out var aHue, out var aSaturation, out var aValue);
-            ColorToHSV(b, out var bHue, out var bSaturation, out var bValue);
-            return ColorFromHSV(
-                Transform(aHue, bHue, position),
-                Transform(aSaturation, bSaturation, position),
-                Transform(aValue, bValue, position)
-            );
-        }
-        
-        private static Color[] colortable = new[]
+        /// <summary>
+        /// Табличка довольно разных цветов. Отлично помогает при отладке.
+        /// Источник: https://stackoverflow.com/a/20298116
+        /// </summary>
+        private static readonly Color[] colortable = new[]
         {
             "#000000", "#FFFF00", "#1CE6FF", "#FF34FF", "#FF4A46", "#008941", "#006FA6", "#A30059",
             "#FFDBE5", "#7A4900", "#0000A6", "#63FFAC", "#B79762", "#004D43", "#8FB0FF", "#997D87",
@@ -72,45 +45,100 @@ namespace Fracta
             "#C895C5", "#320033", "#FF6832", "#66E1D3", "#CFCDAC", "#D0AC94", "#7ED379", "#012C58"
         }.Select(ColorTranslator.FromHtml).ToArray();
 
+        /// <summary>
+        /// Вычисляет цвет градиента указанного вида, который
+        /// начинается с цвета <paramref name="a" /> и заканчивается цветом <paramref name="b" />.
+        /// Позиция в градиенте вычисляется по значению дроби <see cref="numerator" />:<see cref="denominator" />
+        /// </summary>
+        public static Color GetColor(this GradientKind kind, Color a, Color b, int numerator, int denominator)
+        {
+            var position = (double) numerator / denominator;
+            return kind switch
+            {
+                GradientKind.Usual => LinearGradient(a, b, position),
+                GradientKind.HSV => HsvGradient(a, b, position),
+                GradientKind.Static => StaticColor(numerator),
+                GradientKind.None => a,
+                _ => b
+            };
+        }
+
+        private static double TransformNumber(double start, double end, double position)
+        {
+            return start + (end - start) * position;
+        }
+
+        /// <summary>
+        /// Вычисляет цвет для линейного RGB-градиента.
+        /// </summary>
+        public static Color LinearGradient(Color a, Color b, double position)
+        {
+            return Color.FromArgb(
+                (int) TransformNumber(a.R, b.R, position),
+                (int) TransformNumber(a.G, b.B, position),
+                (int) TransformNumber(a.G, b.B, position));
+        }
+
+        /// <summary>
+        /// Вычисляет цвет для линейного HSV-градиента.
+        /// </summary>
+        public static Color HsvGradient(Color a, Color b, double position)
+        {
+            ColorToHSV(a, out var aHue, out var aSaturation, out var aValue);
+            ColorToHSV(b, out var bHue, out var bSaturation, out var bValue);
+            return ColorFromHSV(
+                TransformNumber(aHue, bHue, position),
+                TransformNumber(aSaturation, bSaturation, position),
+                TransformNumber(aValue, bValue, position)
+            );
+        }
+
+        /// <summary>
+        /// Какой-то цвет по его номеру, ни капли не градиент.
+        /// </summary>
         public static Color StaticColor(int number)
         {
             return colortable[number % colortable.Length];
         }
-        
-        // https://stackoverflow.com/a/1626175
+
+        // Далее немного адаптированная пара функций отсюда: https://stackoverflow.com/a/1626175
+
+        /// <summary>
+        /// Преобразовывает цвет в HSV.
+        /// </summary>
         private static void ColorToHSV(Color color, out double hue, out double saturation, out double value)
         {
             int max = Math.Max(color.R, Math.Max(color.G, color.B));
             int min = Math.Min(color.R, Math.Min(color.G, color.B));
 
             hue = color.GetHue();
-            saturation = (max == 0) ? 0 : 1d - (1d * min / max);
+            saturation = max == 0 ? 0 : 1d - 1d * min / max;
             value = max / 255d;
         }
 
+        /// <summary>
+        /// Создает цвет из HSV.
+        /// </summary>
         private static Color ColorFromHSV(double hue, double saturation, double value)
         {
-            int hi = Convert.ToInt32(Math.Floor(hue / 60)) % 6;
-            double f = hue / 60 - Math.Floor(hue / 60);
+            var hi = Convert.ToInt32(Math.Floor(hue / 60)) % 6;
+            var f = hue / 60 - Math.Floor(hue / 60);
 
-            value = value * 255;
-            int v = Convert.ToInt32(value);
-            int p = Convert.ToInt32(value * (1 - saturation));
-            int q = Convert.ToInt32(value * (1 - f * saturation));
-            int t = Convert.ToInt32(value * (1 - (1 - f) * saturation));
+            value *= 255;
+            var v = Convert.ToInt32(value);
+            var p = Convert.ToInt32(value * (1 - saturation));
+            var q = Convert.ToInt32(value * (1 - f * saturation));
+            var t = Convert.ToInt32(value * (1 - (1 - f) * saturation));
 
-            if (hi == 0)
-                return Color.FromArgb(255, v, t, p);
-            else if (hi == 1)
-                return Color.FromArgb(255, q, v, p);
-            else if (hi == 2)
-                return Color.FromArgb(255, p, v, t);
-            else if (hi == 3)
-                return Color.FromArgb(255, p, q, v);
-            else if (hi == 4)
-                return Color.FromArgb(255, t, p, v);
-            else
-                return Color.FromArgb(255, v, p, q);
+            return hi switch
+            {
+                0 => Color.FromArgb(255, v, t, p),
+                1 => Color.FromArgb(255, q, v, p),
+                2 => Color.FromArgb(255, p, v, t),
+                3 => Color.FromArgb(255, p, q, v),
+                4 => Color.FromArgb(255, t, p, v),
+                _ => Color.FromArgb(255, v, p, q)
+            };
         }
     }
 }

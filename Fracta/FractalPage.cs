@@ -2,35 +2,67 @@ using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
-using System.Threading;
 using System.Windows.Forms;
 
 namespace Fracta
 {
+    /// <summary>
+    /// TabPage, которая выступает хранилищем какого-то фрактала.
+    /// Этот класс лучше не использовать, вместо него есть TabPage<T>, который является хранилищем конкретного фрактала.
+    /// </summary>
     public abstract class FractalPage : TabPage
     {
+        /// <inheritdoc cref="TabPage" />
         protected FractalPage(string text) : base(text)
         {
         }
 
+        /// <summary>
+        /// Сам фрактал.
+        /// </summary>
         public abstract Fractal Fractal { get; }
+
+        /// <summary>
+        /// Обновляет размеры поля для рисования.
+        /// </summary>
         public abstract void UpdateSize();
+
+        /// <summary>
+        /// Перерисовывает фрактал.
+        /// </summary>
+        /// <param name="fast">
+        /// Следует ли рисовать максимально быстро, или же надо учитывать указанную пользователем медленность отрисовки.
+        /// </param>
         public abstract void Draw(bool fast);
     }
 
+    /// <summary>
+    /// TabPage, которая выступает хранилищем фрактала типа T.
+    /// </summary>
+    /// <typeparam name="T">Тип фрактала.</typeparam>
     public class FractalPage<T> : FractalPage where T : Fractal, new()
     {
-        public override Fractal Fractal => SpecificFractal;
-
-        private T SpecificFractal { get; }
-
+        /// <summary>
+        /// То, где происходит отрисовка.
+        /// </summary>
         private DrawingContext _drawing;
-        private PictureBox _picbox;
 
+        /// <summary>
+        /// Control, который отображает картинку.
+        /// </summary>
+        private readonly PictureBox _picbox;
+
+        /// <summary>
+        /// Создаёт FractalPage для указанного в типе фрактала.
+        /// </summary>
         public FractalPage() : this(new T())
         {
         }
 
+        /// <summary>
+        /// Создаёт FractalPage для указанного фрактала.
+        /// Стоит заметить, что это приватный конструктор (без особой на то причины).
+        /// </summary>
         private FractalPage(T fractal) : base(fractal.Name)
         {
             Dock = DockStyle.Fill;
@@ -38,7 +70,7 @@ namespace Fracta
 
             Controls.Add(fractal.Settings);
             fractal.Settings.ValueChanged += () => Draw(false);
-            fractal.Settings.OnSaveButtonClick += SaveImage;
+            fractal.Settings.OnSaveButtonClick += (sender, e) => SaveImage();
 
             var scroller = new Panel
             {
@@ -52,26 +84,37 @@ namespace Fracta
             scroller.Controls.Add(_picbox);
         }
 
+        /// <inheritdoc />
+        public override Fractal Fractal => SpecificFractal;
+
+        /// <summary>
+        /// Фрактал вполне конкретного типа.
+        /// </summary>
+        public T SpecificFractal { get; }
+
+        /// <summary>
+        /// Подготавливает Bitmap для рисования.
+        /// </summary>
         private Bitmap CreateBitmap()
         {
             var offset = 5;
 
-            if (Fractal.Settings != null)
+            offset += Fractal.Settings.Bounds.Height + 5;
+
+            var availableHeight = Bounds.Height - offset;
+            if (availableHeight <= 0)
             {
-                offset += Fractal.Settings.Bounds.Height + 5;
+                availableHeight = 1;
             }
 
-            var available_height = Bounds.Height - offset;
-            if (available_height <= 0)
-            {
-                available_height = 1;
-            }
-
-            _picbox.SetBounds(5, offset, Bounds.Width - 5, available_height);
-            return new Bitmap(Bounds.Width - 10, available_height);
+            _picbox.SetBounds(5, offset, Bounds.Width - 5, availableHeight);
+            return new Bitmap(Bounds.Width - 10, availableHeight);
         }
 
-        private void SaveImage(object sender, EventArgs e)
+        /// <summary>
+        /// Сохраняет картинку в файл.
+        /// </summary>
+        private void SaveImage()
         {
             var dialog = new SaveFileDialog
             {
@@ -79,7 +122,7 @@ namespace Fracta
                 DefaultExt = "png",
                 ValidateNames = true,
                 Filter = "*.png",
-                FilterIndex = 0,
+                FilterIndex = 0
             };
             var result = dialog.ShowDialog();
             if (result == DialogResult.OK)
@@ -95,6 +138,7 @@ namespace Fracta
             }
         }
 
+        /// <inheritdoc />
         public override void UpdateSize()
         {
             var image = CreateBitmap();
@@ -104,11 +148,12 @@ namespace Fracta
             _drawing.Graphics.SmoothingMode = SmoothingMode.HighQuality;
         }
 
+        /// <inheritdoc />
         public override void Draw(bool fast)
         {
             _drawing.Graphics.Clear(Color.White);
 
-            var info = Fractal.GetInfo(Fractal.RecursionDepth);
+            var info = Fractal.GetInfo(Fractal.Settings.Iterations);
 
             _drawing.Graphics.ResetTransform();
             _drawing.Graphics.TranslateTransform(
@@ -128,8 +173,8 @@ namespace Fracta
                 redrawEvery = long.MaxValue;
             }
 
-            int counter = 0;
-            foreach (var o in Fractal.StartDrawing(_drawing, Fractal.RecursionDepth))
+            var counter = 0;
+            foreach (var o in Fractal.StartDrawing(_drawing, Fractal.Settings.Iterations))
             {
                 counter++;
                 if (counter >= redrawEvery)
