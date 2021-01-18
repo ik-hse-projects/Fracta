@@ -121,8 +121,9 @@ namespace Fracta
                 AddExtension = true,
                 DefaultExt = "png",
                 ValidateNames = true,
-                Filter = "*.png",
-                FilterIndex = 0
+		// https://docs.microsoft.com/ru-ru/dotnet/api/system.windows.forms.filedialog.filter?view=net-5.0
+                Filter = "PNG Image (*.png)|*.png",
+                FilterIndex = 1
             };
             var result = dialog.ShowDialog();
             if (result == DialogResult.OK)
